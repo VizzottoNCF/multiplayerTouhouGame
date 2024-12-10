@@ -7,14 +7,7 @@ public class Bullet : NetworkBehaviour
     private Vector2 moveDirection;
     [SerializeField] public float speed = 1f;
 
-    //private void OnEnable()
-    //{
-    //    if (GetComponent<NetworkObject>() != null && NetworkManager.Singleton.IsServer)
-    //    {
-    //        Invoke("rf_Destroy", 3f);
-    //        rf_EnableNetworkBulletServerRPC();
-    //    }
-    //}
+    private float life = 0f;
     private void Start()
     {
         if (GetComponent<NetworkObject>() != null && NetworkManager.Singleton.IsServer)
@@ -22,6 +15,12 @@ public class Bullet : NetworkBehaviour
             Invoke("rf_Destroy", 3f);
             rf_EnableNetworkBulletServerRPC();
         }
+    }
+
+    private void Update()
+    {
+        life += Time.deltaTime;
+        if (life > 3f) { rf_DisableNetworkBulletServerRPC(); }
     }
 
     /// <summary> Advances bullet </summary>
@@ -70,10 +69,12 @@ public class Bullet : NetworkBehaviour
         {
             if (!gameObject.GetComponent<NetworkObject>().IsSpawned)
             {
-                gameObject.GetComponent<NetworkObject>().Despawn();
+                gameObject.GetComponent<NetworkObject>().Despawn(destroy: true); Destroy(gameObject);
             }
         }
-        else { gameObject.GetComponent<NetworkObject>().Despawn(destroy: false); }
+        else { 
+            //gameObject.GetComponent<NetworkObject>().Despawn(destroy: false); 
+            gameObject.SetActive(false); }
     }
 
 
@@ -81,6 +82,7 @@ public class Bullet : NetworkBehaviour
     private void rf_EnableNetworkBulletServerRPC()
     {
         if (!GetComponent<NetworkObject>().IsSpawned) { GetComponent<NetworkObject>().Spawn(); }
+        life = 0f;
     }
 
 }

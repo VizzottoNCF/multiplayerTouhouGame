@@ -49,21 +49,17 @@ public class BulletSpawner : NetworkBehaviour
 
 
             GameObject bul = ObjectPool.bulletPoolInstance.rf_GetEnemyBullet();
+            bul.transform.position = transform.position;
+            bul.transform.rotation = transform.rotation;
+            bul.GetComponent<Bullet>().rf_SetMoveDirection(bulDir);
             NetworkObject netBul = bul.GetComponent<NetworkObject>();
 
             if (bul != null)
-            {
-                if (netBul != null && !netBul.IsSpawned) { netBul.Spawn(true); }
-
+            { 
+                if (netBul != null && !netBul.IsSpawned) { netBul.Spawn(true); } 
                 bul.SetActive(true);
             }
             else { Debug.LogError("Falha ao obter bala!"); }
-
-            //bul.speed = 
-            bul.transform.position = transform.position;
-                bul.transform.rotation = transform.rotation;
-                bul.GetComponent<Bullet>().rf_SetMoveDirection(bulDir);
-
 
 
             angle += angleStep;

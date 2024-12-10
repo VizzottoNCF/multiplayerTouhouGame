@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class ObjectPool : MonoBehaviour
+public class ObjectPool : NetworkBehaviour
 {
+    [SerializeField] GameObject[] Walls;
     public static ObjectPool bulletPoolInstance;
 
     [SerializeField] GameObject pooledEnemyBullet;
@@ -40,6 +41,13 @@ public class ObjectPool : MonoBehaviour
         }
 
         return null;
+    }
+    #endregion
+
+    #region Remove from Pool
+    public void rf_RemoveBulletFromPool()
+    {
+
     }
     #endregion
 }
