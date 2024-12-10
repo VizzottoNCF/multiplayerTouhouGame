@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 public class ObjectPool : MonoBehaviour
@@ -6,16 +7,12 @@ public class ObjectPool : MonoBehaviour
     public static ObjectPool bulletPoolInstance;
 
     [SerializeField] GameObject pooledEnemyBullet;
-    [SerializeField] GameObject pooledPlayerBullet;
     public bool notEnoughBulletsInPool = true;
 
     private List<GameObject> enemyBullets;
-    private List<GameObject> playerBullets;
-
     private void Awake() { bulletPoolInstance = this; }
+    private void Start() { enemyBullets = new List<GameObject>(); }
 
-
-    private void Start() { enemyBullets = new List<GameObject>(); playerBullets = new List<GameObject>();  }
     #region Enemy Bullets
     public GameObject rf_GetEnemyBullet()
     {
@@ -35,35 +32,10 @@ public class ObjectPool : MonoBehaviour
         if (notEnoughBulletsInPool)
         {
             GameObject bul = Instantiate(pooledEnemyBullet);
+            var networkObject = bul.GetComponent<NetworkObject>();
+            if (networkObject != null) { networkObject.Spawn(true); } else { Debug.LogWarning("NETWORK OBJECT NULL"); }
             bul.SetActive(false);
             enemyBullets.Add(bul);
-            return bul;
-        }
-
-        return null;
-    }
-    #endregion
-    #region Player Bullets
-    public GameObject rf_GetPlayerBullet()
-    {
-        // if we have bullets in our pool, it'll look through the pool to see if there is one not active in hierarchy and return it
-        if (playerBullets.Count > 0)
-        {
-            for (int i = 0; i < playerBullets.Count; i++)
-            {
-                if (!playerBullets[i].activeInHierarchy)
-                {
-                    return playerBullets[i];
-                }
-            }
-        }
-
-        // else, will instantiate a new bullet, deactivate it, add it to the pool and then return it to be activated by the emitter
-        if (notEnoughBulletsInPool)
-        {
-            GameObject bul = Instantiate(pooledPlayerBullet);
-            bul.SetActive(false);
-            playerBullets.Add(bul);
             return bul;
         }
 

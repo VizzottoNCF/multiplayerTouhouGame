@@ -1,20 +1,27 @@
+using Unity.Netcode;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class Bullet : MonoBehaviour
+public class Bullet : NetworkBehaviour
 {
     private Vector2 moveDirection;
     [SerializeField] public float speed = 1f;
 
-
+    //private void OnEnable()
+    //{
+    //    if (GetComponent<NetworkObject>() != null && NetworkManager.Singleton.IsServer)
+    //    {
+    //        Invoke("rf_Destroy", 3f);
+    //        rf_EnableNetworkBulletServerRPC();
+    //    }
+    //}
     private void Start()
     {
-        //speed = 5f;
-    }
-
-    private void OnEnable()
-    {
-        Invoke("rf_Destroy", 3f);
+        if (GetComponent<NetworkObject>() != null && NetworkManager.Singleton.IsServer)
+        {
+            Invoke("rf_Destroy", 3f);
+            rf_EnableNetworkBulletServerRPC();
+        }
     }
 
     /// <summary> Advances bullet </summary>
@@ -23,8 +30,7 @@ public class Bullet : MonoBehaviour
     /// <summary> Gets direction set by emitter </summary>
     public void rf_SetMoveDirection(Vector2 dir) { moveDirection = dir; }
 
-
-    private void rf_Destroy() { gameObject.SetActive(false); }
+    private void rf_Destroy() { rf_DisableNetworkBulletServerRPC(); }
 
     private void OnDisable() { CancelInvoke(); }
 
@@ -40,7 +46,8 @@ public class Bullet : MonoBehaviour
                 collision.GetComponent<EnemyEntity>().rf_TakeDamage(10);
 
                 // deactivate bullet if it damages
-                gameObject.SetActive(false);
+                //gameObject.SetActive(false);
+                rf_DisableNetworkBulletServerRPC();
             }
         }
         
@@ -52,4 +59,28 @@ public class Bullet : MonoBehaviour
             }
         }
     }
+
+
+    [ServerRpc(RequireOwnership = false)]
+    private void rf_DisableNetworkBulletServerRPC()
+    {
+        //if (gameObject.CompareTag("PlayerBullet")) { gameObject.GetComponent<NetworkObject>().Despawn(); Destroy(gameObject); }
+        //else { gameObject.GetComponent<NetworkObject>().Despawn(); gameObject.SetActive(false); }
+        if (gameObject.CompareTag("PlayerBullet"))
+        {
+            if (!gameObject.GetComponent<NetworkObject>().IsSpawned)
+            {
+                gameObject.GetComponent<NetworkObject>().Despawn();
+            }
+        }
+        else { gameObject.GetComponent<NetworkObject>().Despawn(destroy: false); }
+    }
+
+
+    [ServerRpc]
+    private void rf_EnableNetworkBulletServerRPC()
+    {
+        if (!GetComponent<NetworkObject>().IsSpawned) { GetComponent<NetworkObject>().Spawn(); }
+    }
+
 }

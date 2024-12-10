@@ -1,6 +1,7 @@
+using Unity.Netcode;
 using UnityEngine;
 
-public class GeneralEnemyAI : MonoBehaviour
+public class GeneralEnemyAI : NetworkBehaviour
 {
     public enum EnemyState { Idling, Figure8, Following }
 
@@ -48,13 +49,6 @@ public class GeneralEnemyAI : MonoBehaviour
     }
 
     private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.U)) { rf_OnStateChange(EnemyState.Idling); }
-        if (Input.GetKeyDown(KeyCode.I)) { rf_OnStateChange(EnemyState.Figure8); }
-        if (Input.GetKeyDown(KeyCode.O)) { rf_OnStateChange(EnemyState.Following); }
-    }
-
-    private void FixedUpdate()
     {
         switch (enemyState)
         {
@@ -120,7 +114,7 @@ public class GeneralEnemyAI : MonoBehaviour
         Vector2 targetPos = targetTransform.position;
         if (Vector2.Distance(currentPos, targetPos) > 0.1f && !reachedPoint)
         {
-            Debug.Log(Vector2.Distance(currentPos, targetPos));
+            //Debug.Log(Vector2.Distance(currentPos, targetPos));
             transform.position = Vector2.MoveTowards(currentPos, targetPos, speed * Time.deltaTime);
         }
         else 

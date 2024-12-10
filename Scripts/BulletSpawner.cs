@@ -1,6 +1,8 @@
 using UnityEngine;
+using Unity.Netcode;
+using System.Globalization;
 
-public class BulletSpawner : MonoBehaviour
+public class BulletSpawner : NetworkBehaviour
 {
     public enum SpawnerType { Straight, Spin }
 
@@ -13,26 +15,25 @@ public class BulletSpawner : MonoBehaviour
 
     [Header("Spawner Attributes")]
     [SerializeField] SpawnerType spawnerType;
-    [SerializeField][Range(-1f, 1f)] float firingDirection;
+    [SerializeField][Range(-2f, 2f)] float firingDirection;
     [SerializeField] private float firingRate = 1f;
     private float timerFire = 0f;
 
-    private void Start() { Invoke("rf_Fire", 0f); }
-
     private void Update()
     {
+        if (!IsServer) { return; }
         // timer to continues shooting rounds.
         // using this instead of InvokeRepeating to be able to change bulletfire speed
         timerFire += Time.deltaTime;
-        if (timerFire >= firingRate) { rf_Fire(); timerFire = 0f; }
+        if (timerFire >= firingRate) { rf_FireServerRPC(); timerFire = 0f; }
 
         
         // if spawner is a spin type, uses euler angle to spin around z axis
         if (spawnerType == BulletSpawner.SpawnerType.Spin) { transform.eulerAngles = new Vector3(0f, 0f, transform.eulerAngles.z + firingDirection); }
 
     }
-
-    private void rf_Fire()
+    [ServerRpc]
+    private void rf_FireServerRPC()
     {
         float angleStep = (endAngle - startAngle) / bulletsAmmount;
         float angle = startAngle;
@@ -48,11 +49,22 @@ public class BulletSpawner : MonoBehaviour
 
 
             GameObject bul = ObjectPool.bulletPoolInstance.rf_GetEnemyBullet();
-                //bul.speed = 
-                bul.transform.position = transform.position;
-                bul.transform.rotation = transform.rotation;
+            NetworkObject netBul = bul.GetComponent<NetworkObject>();
+
+            if (bul != null)
+            {
+                if (netBul != null && !netBul.IsSpawned) { netBul.Spawn(true); }
+
                 bul.SetActive(true);
+            }
+            else { Debug.LogError("Falha ao obter bala!"); }
+
+            //bul.speed = 
+            bul.transform.position = transform.position;
+                bul.transform.rotation = transform.rotation;
                 bul.GetComponent<Bullet>().rf_SetMoveDirection(bulDir);
+
+
 
             angle += angleStep;
         }

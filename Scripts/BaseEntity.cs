@@ -1,6 +1,7 @@
+using Unity.Netcode;
 using UnityEngine;
 
-public abstract class BaseEntity : MonoBehaviour
+public abstract class BaseEntity : NetworkBehaviour
 {
     [Header("Base Entity Stats")]
     [SerializeField] public bool alive = true;

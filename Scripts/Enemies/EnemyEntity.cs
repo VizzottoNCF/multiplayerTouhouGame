@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 
 public class EnemyEntity : BaseEntity
@@ -15,14 +16,16 @@ public class EnemyEntity : BaseEntity
 
     private void rf_OnEnemyDeath()
     {
+        gameObject.GetComponent<NetworkObject>().Despawn();
         gameObject.SetActive(false);
     }
 
     private void Update()
     {
+        if (!IsOwner) { return; }
         changeAITimer += Time.deltaTime;
 
-        if (changeAITimer > 8f)
+        if (changeAITimer > 4f)
         {
             changeAITimer = 0f;
             if (health >= maxHealth / 2)
